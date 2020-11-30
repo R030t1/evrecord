@@ -23,5 +23,8 @@ int main(int argc, char *argv[]) {
 	gs.push(gzip_compressor());
 	gs.push(fs);
 
+	for (int i = 0; events[i]; i++)
+		printf("%s\n", events[i]);
+
 	return EXIT_SUCCESS;
 }
