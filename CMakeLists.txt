@@ -11,6 +11,8 @@ find_package(Boost REQUIRED COMPONENTS
   iostreams)
 include_directories(${Boost_INCLUDE_DIRS})
 
+add_library(evnames OBJECT names.c)
+
 add_executable(evrecord evrecord.cc)
 target_include_directories(
   evrecord PUBLIC

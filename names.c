@@ -1,0 +1,26 @@
+#include "names.h"
+
+static const char *events[EV_MAX + 1] = {
+	[0 ... EV_MAX] = NULL,
+	NAME_ELEMENT(EV_SYN),			NAME_ELEMENT(EV_KEY),
+	NAME_ELEMENT(EV_REL),			NAME_ELEMENT(EV_ABS),
+	NAME_ELEMENT(EV_MSC),			NAME_ELEMENT(EV_LED),
+	NAME_ELEMENT(EV_SND),			NAME_ELEMENT(EV_REP),
+	NAME_ELEMENT(EV_FF),			NAME_ELEMENT(EV_PWR),
+	NAME_ELEMENT(EV_FF_STATUS),		NAME_ELEMENT(EV_SW),
+};
+
+static int maxval[EV_MAX + 1] = {
+	[0 ... EV_MAX] = -1,
+	[EV_SYN] = SYN_MAX,
+	[EV_KEY] = KEY_MAX,
+	[EV_REL] = REL_MAX,
+	[EV_ABS] = ABS_MAX,
+	[EV_MSC] = MSC_MAX,
+	[EV_SW] = SW_MAX,
+	[EV_LED] = LED_MAX,
+	[EV_SND] = SND_MAX,
+	[EV_REP] = REP_MAX,
+	[EV_FF] = FF_MAX,
+	[EV_FF_STATUS] = FF_STATUS_MAX,
+};

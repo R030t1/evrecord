@@ -8,6 +8,11 @@
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 
+#include <linux/version.h>
+#include <linux/input.h>
+
+#include "names.h"
+
 using namespace std;
 using namespace boost::iostreams;
 
