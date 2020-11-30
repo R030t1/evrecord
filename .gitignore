@@ -1,0 +1,34 @@
+# Project-specific
+evrecord
+
+# Common trash
+*.swp
+*.dat
+*.gz
+*.*~
+project.lock.json
+.DS_Store
+*.pyc
+
+# Protobuf files
+*.pb.h
+*.pb.cc
+
+# CMake files
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# CMake Ninja files
+build.ninja
+rules.ninja
+.ninja_deps
+.ninja_log
