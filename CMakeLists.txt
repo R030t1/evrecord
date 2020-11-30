@@ -19,4 +19,5 @@ target_include_directories(
   "${PROJECT_BINARY_DIR}")
 target_link_libraries(
   evrecord
+  evnames
   Boost::iostreams)
