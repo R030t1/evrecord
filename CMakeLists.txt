@@ -11,6 +11,11 @@ find_package(Boost REQUIRED COMPONENTS
   iostreams)
 include_directories(${Boost_INCLUDE_DIRS})
 
+find_package(Protobuf REQUIRED)
+include_directories(${Protobuf_INCLUDE_DIRS})
+#protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS name.proto)
+
+# Compile the constant to name tables separately as C.
 add_library(evnames OBJECT names.c)
 
 add_executable(evrecord evrecord.cc)
@@ -20,4 +25,5 @@ target_include_directories(
 target_link_libraries(
   evrecord
   evnames
-  Boost::iostreams)
+  Boost::iostreams
+  ${Protobuf_LIBRARIES})

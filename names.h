@@ -13,6 +13,7 @@
 extern const char *events[EV_MAX + 1];
 extern int maxval[EV_MAX + 1];
 
+// TODO: Remove guards?
 #ifdef INPUT_PROP_SEMI_MT
 extern const char *props[INPUT_PROP_MAX + 1];
 #endif

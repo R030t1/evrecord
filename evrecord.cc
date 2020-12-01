@@ -26,5 +26,8 @@ int main(int argc, char *argv[]) {
 	for (int i = 0; events[i]; i++)
 		printf("%s\n", events[i]);
 
+	for (int i = 0; keys[i]; i++)
+		printf("%s\n", keys[i]);
+
 	return EXIT_SUCCESS;
 }
