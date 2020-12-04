@@ -83,10 +83,19 @@ void print_device(int fd) {
 			for (int code = 0; code < KEY_MAX; code++) {
 				if (test_bit(code, bit[type])) {
 					printf("    Event code %d (%s)\n", code, code_name(type, code));
-					if (type == EV_ABS); // Dump ABS data.
+					if (type == EV_ABS) {
+						int abs[6] = { 0 };
+						// code is axis.
+						ioctl(fd, EVIOCGABS(code), abs);
+						for (int k = 0; k < 6; k++)
+							if ((k < 3) || abs[k])
+								printf("        %s %6d\n", absval[k], abs[k]);
+					}
 				}
 			}
 		}
 	}
+
+	// Repeat handling and properties.
 
 }
