@@ -22,10 +22,21 @@
 
 namespace fs = std::filesystem;
 using namespace std;
+// TODO: Boost namespace is very noisy, reconsider some of these.
 using namespace boost;
 using namespace boost::asio;
 using namespace boost::asio::posix;
 using namespace boost::iostreams;
+
+static inline const char* type_name(unsigned int type)
+{
+	return (type <= EV_MAX && events[type]) ? events[type] : "?";
+}
+
+static inline const char* code_name(unsigned int type, unsigned int code)
+{
+	return (type <= EV_MAX && code <= maxval[type] && names[type] && names[type][code]) ? names[type][code] : "?";
+}
 
 void print_device(int fd);
 
@@ -41,14 +52,28 @@ int main(int argc, char *argv[]) {
 	// io_service is boost::asio's binding to OS primitives.
 	// It maintains a thread pool.
 	io_service svc;
+	// Destruction notifies io_service that work is complete.
+	// Not entirely clear on how this is used for signalling.
 	//io_service::work wrk(svc);
 
 	char b[1024];
 	stream_descriptor evdev(svc, evfd);
 
+	// This works, but seems less than idea.
+	// TODO: Better use of io_service?
 	function<void(system::error_code const&, size_t)> on_receive =
 	[&evdev, &b, &on_receive](system::error_code const& ec, size_t bytes) {
-		printf("got %ld\n", bytes);
+		struct input_event *ev = (struct input_event *)b;
+		int nev = bytes / sizeof(struct input_event);
+
+		for (int i = 0; i < nev; i++) {
+			printf("[%3ld]; %d (%s); %d (%s); %d\n", 
+				bytes,
+				ev[i].type, type_name(ev[i].type),
+				ev[i].code, code_name(ev[i].type, ev[i].code),
+				ev[i].value);
+		}
+
 		evdev.async_read_some(buffer(b), on_receive);
 	};
 	evdev.async_read_some(buffer(b), on_receive);
@@ -70,16 +95,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	return EXIT_SUCCESS;
-}
-
-static inline const char* type_name(unsigned int type)
-{
-	return (type <= EV_MAX && events[type]) ? events[type] : "?";
-}
-
-static inline const char* code_name(unsigned int type, unsigned int code)
-{
-	return (type <= EV_MAX && code <= maxval[type] && names[type] && names[type][code]) ? names[type][code] : "?";
 }
 
 void print_device(int fd) {
