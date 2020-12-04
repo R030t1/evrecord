@@ -9,8 +9,11 @@
 #include <fstream>
 #include <filesystem>
 
+#include <boost/asio.hpp>
+#include <boost/asio/posix/stream_descriptor.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filter/bzip2.hpp>
 
 #include <linux/version.h>
 #include <linux/input.h>
@@ -19,6 +22,9 @@
 
 namespace fs = std::filesystem;
 using namespace std;
+using namespace boost;
+using namespace boost::asio;
+using namespace boost::asio::posix;
 using namespace boost::iostreams;
 
 void print_device(int fd);
@@ -27,14 +33,31 @@ int main(int argc, char *argv[]) {
 	ofstream fs;
 	filtering_ostream gs;
 
-	gs.push(gzip_compressor());
+	gs.push(bzip2_compressor());
 	gs.push(fs);
 
-	for (int i = 0; events[i]; i++)
-		printf("%s\n", events[i]);
+	int evfd = open(argv[1], O_RDWR);
 
-	for (int i = 0; keys[i]; i++)
-		printf("%s\n", keys[i]);
+	// io_service is boost::asio's binding to OS primitives.
+	// It maintains a thread pool.
+	io_service svc;
+	//io_service::work wrk(svc);
+
+	char b[1024];
+	stream_descriptor evdev(svc, evfd);
+
+	function<void(system::error_code const&, size_t)> on_receive =
+	[&evdev, &b, &on_receive](system::error_code const& ec, size_t bytes) {
+		printf("got %ld\n", bytes);
+		evdev.async_read_some(buffer(b), on_receive);
+	};
+	evdev.async_read_some(buffer(b), on_receive);
+
+	//std::thread thd([&svc]() { svc.run(); });
+	//thd.join();
+	svc.run();
+
+	return EXIT_SUCCESS;
 
 	// Gets all of the top level eventN devices.
 	for (const auto &dirent : fs::directory_iterator("/dev/input")) {
