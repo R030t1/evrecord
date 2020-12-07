@@ -19,6 +19,7 @@
 #include <linux/input.h>
 
 #include "names.h"
+#include "records.pb.h"
 
 namespace fs = std::filesystem;
 using namespace std;
@@ -44,6 +45,8 @@ int main(int argc, char *argv[]) {
 	ofstream fs;
 	filtering_ostream gs;
 
+	fs.open("inputrec.dat.bz2", ios_base::binary | ios_base::trunc);
+
 	gs.push(bzip2_compressor());
 	gs.push(fs);
 
@@ -56,13 +59,20 @@ int main(int argc, char *argv[]) {
 	// Not entirely clear on how this is used for signalling.
 	//io_service::work wrk(svc);
 
+	signal_set sigs(svc, SIGINT);
+	sigs.async_wait([&gs](system::error_code const& ec, int signo) {
+		gs.reset();
+		// TODO: Nice way to clean up.
+		exit(-1);
+	});
+
 	char b[1024];
 	stream_descriptor evdev(svc, evfd);
 
 	// This works, but seems less than idea.
 	// TODO: Better use of io_service?
 	function<void(system::error_code const&, size_t)> on_receive =
-	[&evdev, &b, &on_receive](system::error_code const& ec, size_t bytes) {
+	[&evdev, &b, &on_receive, &gs](system::error_code const& ec, size_t bytes) {
 		struct input_event *ev = (struct input_event *)b;
 		int nev = bytes / sizeof(struct input_event);
 
@@ -74,6 +84,7 @@ int main(int argc, char *argv[]) {
 				ev[i].value);
 		}
 
+		gs.write(b, bytes);
 		evdev.async_read_some(buffer(b), on_receive);
 	};
 	evdev.async_read_some(buffer(b), on_receive);

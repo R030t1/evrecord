@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+message Warning {
+	string  text = 1;
+}
+
+message InputRecord {
+	bytes data = 1;
+}

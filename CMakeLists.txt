@@ -13,15 +13,15 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 find_package(Protobuf REQUIRED)
 include_directories(${Protobuf_INCLUDE_DIRS})
-#protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS name.proto)
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS records.proto)
 
 # Compile the constant to name tables separately as C.
 add_library(evnames OBJECT names.c)
 
-add_executable(evrecord evrecord.cc)
+add_executable(evrecord evrecord.cc ${PROTO_SRCS})
 target_include_directories(
   evrecord PUBLIC
-  "${PROJECT_BINARY_DIR}")
+  "${PROJECT_BINARY_DIR}") 
 target_link_libraries(
   evrecord
   evnames
