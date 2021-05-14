@@ -14,6 +14,7 @@
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
+#include <boost/iostreams/filter/zstd.hpp>
 
 #include <linux/version.h>
 #include <linux/input.h>
@@ -43,12 +44,12 @@ void print_device(int fd);
 
 int main(int argc, char *argv[]) {
 	ofstream fs;
-	filtering_ostream gs;
+	filtering_ostream zs;
 
-	fs.open("inputrec.dat.bz2", ios_base::binary | ios_base::trunc);
+	fs.open("inputrec.dat.zst", ios_base::binary | ios_base::trunc);
 
-	gs.push(bzip2_compressor());
-	gs.push(fs);
+	zs.push(zstd_compressor());
+	zs.push(fs);
 
 	int evfd = open(argv[1], O_RDWR);
 
@@ -60,8 +61,8 @@ int main(int argc, char *argv[]) {
 	//io_service::work wrk(svc);
 
 	signal_set sigs(svc, SIGINT);
-	sigs.async_wait([&gs](system::error_code const& ec, int signo) {
-		gs.reset();
+	sigs.async_wait([&zs](system::error_code const& ec, int signo) {
+		zs.reset();
 		// TODO: Nice way to clean up.
 		exit(-1);
 	});
@@ -69,10 +70,10 @@ int main(int argc, char *argv[]) {
 	char b[1024];
 	stream_descriptor evdev(svc, evfd);
 
-	// This works, but seems less than idea.
+	// This works, but seems less than ideal.
 	// TODO: Better use of io_service?
 	function<void(system::error_code const&, size_t)> on_receive =
-	[&evdev, &b, &on_receive, &gs](system::error_code const& ec, size_t bytes) {
+	[&evdev, &b, &on_receive, &zs](system::error_code const& ec, size_t bytes) {
 		struct input_event *ev = (struct input_event *)b;
 		int nev = bytes / sizeof(struct input_event);
 
@@ -84,7 +85,7 @@ int main(int argc, char *argv[]) {
 				ev[i].value);
 		}
 
-		gs.write(b, bytes);
+		zs.write(b, bytes);
 		evdev.async_read_some(buffer(b), on_receive);
 	};
 	evdev.async_read_some(buffer(b), on_receive);
