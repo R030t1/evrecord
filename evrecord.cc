@@ -74,6 +74,7 @@ int main(int argc, char *argv[]) {
 		exit(-1);
 	});
 
+	// TODO: Just use boost::iostream::copy?
 	char b[1024];
 	stream_descriptor evdev(svc, evfd);
 
