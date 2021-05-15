@@ -15,6 +15,8 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/zstd.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/device/file.hpp>
 
 #include <linux/version.h>
 #include <linux/input.h>
@@ -43,13 +45,16 @@ static inline const char* code_name(unsigned int type, unsigned int code)
 void print_device(int fd);
 
 int main(int argc, char *argv[]) {
-	ofstream fs;
-	filtering_ostream zs;
+	// You'd think boost can take an ostream, but no.
+	// 5 minutes later: it does now, but why?
+	//ofstream fs;
+	//fs.open("inputrec.dat.zst", ios_base::binary | ios_base::trunc);
+	
+	file_sink fs{"inputrec.dat.zst"};
+	filtering_ostream* zs = new filtering_ostream();
 
-	fs.open("inputrec.dat.zst", ios_base::binary | ios_base::trunc);
-
-	zs.push(zstd_compressor());
-	zs.push(fs);
+	zs->push(zstd_compressor());
+	zs->push(fs);
 
 	int evfd = open(argv[1], O_RDWR);
 
@@ -62,8 +67,10 @@ int main(int argc, char *argv[]) {
 
 	signal_set sigs(svc, SIGINT);
 	sigs.async_wait([&zs](system::error_code const& ec, int signo) {
-		zs.reset();
-		// TODO: Nice way to clean up.
+		// Stream finalizes on destructor only. GitHub PR116 on
+		// boostorg/iostreams. Original trac bug #1656 13 years old
+		// at time of writing.
+		delete zs;
 		exit(-1);
 	});
 
@@ -85,7 +92,7 @@ int main(int argc, char *argv[]) {
 				ev[i].value);
 		}
 
-		zs.write(b, bytes);
+		zs->write(b, bytes);
 		evdev.async_read_some(buffer(b), on_receive);
 	};
 	evdev.async_read_some(buffer(b), on_receive);

@@ -5,6 +5,7 @@ evrecord
 *.swp
 *.dat
 *.gz
+*.zstd
 *.*~
 project.lock.json
 .DS_Store
