@@ -85,6 +85,7 @@ int main(int argc, char *argv[]) {
 		struct input_event *ev = (struct input_event *)b;
 		int nev = bytes / sizeof(struct input_event);
 
+		(void)ev[0].time.tv_sec;
 		for (int i = 0; i < nev; i++) {
 			printf("[%3ld]; %d (%s); %d (%s); %d\n", 
 				bytes,
